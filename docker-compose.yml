@@ -1,0 +1,48 @@
+version: "3"
+services:
+  laravel-template-nginx:
+    image: nginx:latest
+    container_name: laravel-template-nginx__container
+    ports:
+      - "${PORT:-80}:80"
+    volumes:
+      - type: bind
+        source: "./docker/nginx/local/default.conf.template"
+        target: "/etc/nginx/templates/default.conf.template"
+    env_file:
+      - "./.env"
+    tty: true
+    depends_on:
+      - laravel-template-php
+
+  laravel-template-php:
+    image: laravel-template-php__image:latest
+    container_name: ${APP_HOST}
+    build:
+      context: "."
+      dockerfile: "./docker/php/local/Dockerfile"
+    volumes:
+      - type: bind
+        source: "./project"
+        target: "/var/www/html"
+    env_file:
+      - "./.env"
+    depends_on:
+      - laravel-template-mysql
+
+  laravel-template-mysql:
+    image: mysql:latest
+    container_name: ${DATABASE_HOST:-laravel-template-mysql__container}
+    platform: linux/x86_64
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD:-secret}
+      MYSQL_DATABASE: ${DATABASE_NAME:-laravel_template}
+      MYSQL_USER: ${DATABASE_USER:-laravel_template}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD:-secret}
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - type: bind
+        source: "./docker/mysql/local/data"
+        target: "/var/lib/mysql"
+    ports:
+      - "3306:3306"
