@@ -14,5 +14,10 @@ ENV COMPOSER_ALLOW_SUPERUSER 1 \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
-# Install bun.sh
-RUN curl -fsSL https://bun.sh/install | bash
+# Get latest Node.js
+COPY --from=node:latest /usr/local/bin /usr/local/bin
+COPY --from=node:latest /usr/local/lib /usr/local/lib
+# remove `yarn` binary
+RUN rm /usr/local/bin/yarn && rm /usr/local/bin/yarnpkg
+# setup `yarn` command
+RUN npm install -g yarn
